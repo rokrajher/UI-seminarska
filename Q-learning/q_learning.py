@@ -15,6 +15,8 @@ def plot_results(rewards_per_episode, map_name):
 def run(episodes, is_training, render, is_slippery, map_name, learning_rate_a, discount_factor_g, epsilon, epsilon_decay_rate, seed):
     size = map_name.split('x')[0]
     size = int(size)
+    alpha = learning_rate_a
+    gamma = discount_factor_g
 
     env = gym.make('FrozenLake-v1', desc=generate_random_map(size=size, seed=seed), is_slippery=is_slippery, render_mode='human' if render else None)
 
@@ -60,7 +62,7 @@ def run(episodes, is_training, render, is_slippery, map_name, learning_rate_a, d
     env.close()
 
     if is_training:
-        f = open(f'./models/frozen_lake_{map_name}_alpha_{learning_rate_a}_gamma_{discount_factor_g}_slippery_{is_slippery}.pkl', 'wb')
+        f = open(f'./models/frozen_lake_{map_name}_alpha_{alpha}_gamma_{gamma}_slippery_{is_slippery}.pkl', 'wb')
         pickle.dump(q, f)
         f.close()
         
