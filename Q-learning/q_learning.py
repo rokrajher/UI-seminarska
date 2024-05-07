@@ -2,23 +2,30 @@ import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+from gymnasium.envs.toy_text.frozen_lake import generate_random_map
 
-def run(episodes, is_training=True, render=False):
 
-    env = gym.make('FrozenLake-v1', map_name="8x8", is_slippery=True, render_mode='human' if render else None)
+def plot_results(rewards_per_episode, map_name):
+    sum_rewards = np.zeros(rewards_per_episode.shape[0])
+    for t in range(rewards_per_episode.shape[0]):
+        sum_rewards[t] = np.sum(rewards_per_episode[max(0, t-100):(t+1)])
+    plt.plot(sum_rewards)
+    plt.savefig(f'./plots/frozen_lake{map_name}.png')
+
+def run(episodes, is_training, render, is_slippery, map_name, learning_rate_a, discount_factor_g, epsilon, epsilon_decay_rate, seed):
+    size = map_name.split('x')[0]
+    size = int(size)
+
+    env = gym.make('FrozenLake-v1', desc=generate_random_map(size=size, seed=seed), is_slippery=is_slippery, render_mode='human' if render else None)
 
     if(is_training):
         q = np.zeros((env.observation_space.n, env.action_space.n)) # init a 64 x 4 array
     else:
-        f = open('frozen_lake8x8.pkl', 'rb')
+        f = open(f'./models/frozen_lake_{map_name}_{learning_rate_a}_{discount_factor_g}_{is_slippery}.pkl', 'rb')
         q = pickle.load(f)
         f.close()
 
-    learning_rate_a = 0.9 # alpha or learning rate
-    discount_factor_g = 0.9 # gamma or discount rate. Near 0: more weight/reward placed on immediate state. Near 1: more on future state.
-    epsilon = 1         # 1 = 100% random actions
-    epsilon_decay_rate = 0.0001        # epsilon decay rate. 1/0.0001 = 10,000
-    rng = np.random.default_rng()   # random number generator
+    rng = np.random.default_rng(seed=seed)   # random number generator
 
     rewards_per_episode = np.zeros(episodes)
 
@@ -52,17 +59,13 @@ def run(episodes, is_training=True, render=False):
 
     env.close()
 
-    sum_rewards = np.zeros(episodes)
-    for t in range(episodes):
-        sum_rewards[t] = np.sum(rewards_per_episode[max(0, t-100):(t+1)])
-    plt.plot(sum_rewards)
-    plt.savefig('frozen_lake8x8.png')
-
     if is_training:
-        f = open("frozen_lake8x8.pkl","wb")
+        f = open(f'./models/frozen_lake_{map_name}_alpha_{learning_rate_a}_gamma_{discount_factor_g}_slippery_{is_slippery}.pkl', 'wb')
         pickle.dump(q, f)
         f.close()
+        
+    return rewards_per_episode
 
 if __name__ == '__main__':
-    # run(15000)
-    run(15000, is_training=True, render=False)
+    reward_per_episode = run(episodes=15000, is_training=False, is_slippery=True,  render=False, map_name="8x8", learning_rate_a=0.9, discount_factor_g=0.9, epsilon=1, epsilon_decay_rate=0.0001, seed=10)
+    plot_results(reward_per_episode, "8x8")
