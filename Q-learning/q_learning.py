@@ -4,14 +4,6 @@ import matplotlib.pyplot as plt
 import pickle
 from gymnasium.envs.toy_text.frozen_lake import generate_random_map
 
-
-def plot_results(rewards_per_episode, map_name):
-    sum_rewards = np.zeros(rewards_per_episode.shape[0])
-    for t in range(rewards_per_episode.shape[0]):
-        sum_rewards[t] = np.sum(rewards_per_episode[max(0, t-100):(t+1)])
-    plt.plot(sum_rewards)
-    plt.savefig(f'./plots/frozen_lake{map_name}.png')
-
 def run(episodes, is_training, render, is_slippery, map_name, learning_rate_a, discount_factor_g, epsilon, epsilon_decay_rate, seed):
     size = map_name.split('x')[0]
     size = int(size)
@@ -70,4 +62,3 @@ def run(episodes, is_training, render, is_slippery, map_name, learning_rate_a, d
 
 if __name__ == '__main__':
     reward_per_episode = run(episodes=15000, is_training=False, is_slippery=True,  render=False, map_name="8x8", learning_rate_a=0.9, discount_factor_g=0.9, epsilon=1, epsilon_decay_rate=0.0001, seed=10)
-    plot_results(reward_per_episode, "8x8")
